@@ -2,10 +2,10 @@
 plan_id: 2026-1023-standalone-g1-planner-to-h2-demo
 title: Extract G1 planner to H2 demo into an independent repository
 type: plan
-status: PLANNED
+status: COMPLETED
 branch: integrate/standalone-g1-planner-to-h2-demo
 created: 2026-10-23
-implementation:
+implementation: doc/implementation/2026-1023-standalone-g1-planner-to-h2-demo.md
 findings:
 -->
 

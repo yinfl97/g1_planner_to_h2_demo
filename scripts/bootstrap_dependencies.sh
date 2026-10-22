@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+BUILD_ROOT="${DEMO_DEPENDENCY_BUILD_ROOT:-${REPO_ROOT}/build/deps}"
+INSTALL_PREFIX="${BUILD_ROOT}/install"
+BUILD_TYPE="${1:-Release}"
+PARALLELISM="${2:-$(nproc)}"
+
+declare -A pins=(
+  [pinocchio]=6ce7b7c5d2ae62bb943d88846df0723e8f1ef0a7
+  [osqp]=1c2cb65e0b2372faf7216f3af5fe00eba9d26428
+  [qpOASES]=7f26b3247b90dbb9c0ed6c5dd18883da35e0ec72
+  [mujoco]=245bc6b60a9098dfb899a3cce63e2ed6490390fe
+  [robot_retargeter]=af1777399672d28a7543b961164deada3fb5c0e2
+  [glfw]=7b6aead9fb88b3623e3b3725ebb42670cbe4c579
+)
+
+for dependency in pinocchio osqp qpOASES mujoco robot_retargeter glfw; do
+  path="${REPO_ROOT}/thirdparty/${dependency}"
+  [[ -e "${path}/.git" ]] || {
+    echo "Missing ${dependency}; run: git submodule update --init --recursive" >&2
+    exit 1
+  }
+  actual="$(git -c safe.directory="${path}" -C "${path}" rev-parse HEAD)"
+  [[ "${actual}" == "${pins[${dependency}]}" ]] || {
+    echo "${dependency} is at ${actual}; expected ${pins[${dependency}]}" >&2
+    exit 1
+  }
+done
+
+mkdir -p "${BUILD_ROOT}" "${INSTALL_PREFIX}"
+cmake -S "${REPO_ROOT}/thirdparty/pinocchio" -B "${BUILD_ROOT}/pinocchio" \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+  -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-/opt/ros/humble}" \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=OFF \
+  -DFETCHCONTENT_FULLY_DISCONNECTED=ON -DBUILD_PYTHON_INTERFACE=OFF \
+  -DBUILD_TESTING=OFF -DBUILD_DOCUMENTATION=OFF -DINSTALL_DOCUMENTATION=OFF \
+  -DBUILD_BENCHMARK=OFF -DBUILD_UTILS=OFF -DBUILD_WITH_URDF_SUPPORT=ON \
+  -DBUILD_WITH_COLLISION_SUPPORT=OFF -DBUILD_WITH_AUTODIFF_SUPPORT=OFF \
+  -DBUILD_WITH_CODEGEN_SUPPORT=OFF
+cmake --build "${BUILD_ROOT}/pinocchio" --target install -j"${PARALLELISM}"
+
+cmake -S "${REPO_ROOT}/thirdparty/osqp" -B "${BUILD_ROOT}/osqp" \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=OFF \
+  -DFETCHCONTENT_FULLY_DISCONNECTED=ON -DPYTHON=OFF -DMATLAB=OFF -DR_LANG=OFF \
+  -DUNITTESTS=OFF -DPROFILING=OFF -DENABLE_MKL_PARDISO=OFF
+cmake --build "${BUILD_ROOT}/osqp" --target install -j"${PARALLELISM}"
+
+cmake -S "${REPO_ROOT}/thirdparty/mujoco" -B "${BUILD_ROOT}/mujoco" \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+  -DFETCHCONTENT_FULLY_DISCONNECTED=ON -DMUJOCO_BUILD_TESTS=OFF \
+  -DMUJOCO_TEST_PYTHON_UTIL=OFF -DMUJOCO_BUILD_SIMULATE=OFF \
+  -DMUJOCO_BUILD_EXAMPLES=OFF -DMUJOCO_BUILD_STUDIO=OFF \
+  -DMUJOCO_USE_FILAMENT=OFF -DMUJOCO_WITH_USD=OFF
+cmake --build "${BUILD_ROOT}/mujoco" --target install -j"${PARALLELISM}"
+
+echo "Pinned dependencies installed in ${INSTALL_PREFIX}"
