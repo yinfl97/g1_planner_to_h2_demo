@@ -43,7 +43,7 @@
 #include "../include/fk.hpp"
 #include "../include/policy_parameters.hpp"
 #include "../include/math_utils.hpp"
-#include "io_debug_log/debug_log.hpp"
+#include "demo_log.hpp"
 
 /**
  * @struct MotionSequence
@@ -133,8 +133,8 @@ struct MotionSequence {
     {
       if(positions_world_tmp.size() != positions_world_tmp.size())
       {
-        ioai::debug::log("MotionData").error("failed to compute fk - wrong number of joints");
-        ioai::debug::log("MotionData").error("{} != {}", positions_world_tmp.size(), positions_world_tmp.size());
+        demo::log("MotionData").error("failed to compute fk - wrong number of joints");
+        demo::log("MotionData").error("{} != {}", positions_world_tmp.size(), positions_world_tmp.size());
         return;
       }
 
@@ -213,7 +213,7 @@ struct MotionSequence {
         }
         if(pos_filter_tmp.size() < timesteps || ang_filter_tmp.size() < timesteps)
         {
-          ioai::debug::log("MotionData").error("failed to filter velocities because buffer size is inadequate");
+          demo::log("MotionData").error("failed to filter velocities because buffer size is inadequate");
           return;
         }
         for(size_t body_idx = 0; body_idx < body_part_indexes.size(); ++body_idx)
@@ -332,7 +332,7 @@ public:
   // Directory structure: base_dir/YYYYMMDD/motion_name_HHMMSS/
   bool StartSession(const std::string& motion_name = "zmq_stream") {
     if (active_) {
-      ioai::debug::log("MotionData").error("session already active, stopping previous session");
+      demo::log("MotionData").error("session already active, stopping previous session");
       Finalize();
     }
 
@@ -362,10 +362,10 @@ public:
       frames_written_ = 0;
       active_ = true;
 
-      ioai::debug::log("MotionData").info("recording started: {}", motion_dir_);
+      demo::log("MotionData").info("recording started: {}", motion_dir_);
       return true;
     } catch (const std::exception& e) {
-      ioai::debug::log("MotionData").error("failed to start session: {}", e.what());
+      demo::log("MotionData").error("failed to start session: {}", e.what());
       return false;
     }
   }
@@ -468,7 +468,7 @@ public:
       frames_written_++;
       return true;
     } catch (const std::exception& e) {
-      ioai::debug::log("MotionData").error("failed to write frame: {}", e.what());
+      demo::log("MotionData").error("failed to write frame: {}", e.what());
       return false;
     }
   }
@@ -499,9 +499,9 @@ public:
         meta.close();
       }
 
-      ioai::debug::log("MotionData").info("recording saved: {} frames at '{}'", frames_written_, motion_dir_);
+      demo::log("MotionData").info("recording saved: {} frames at '{}'", frames_written_, motion_dir_);
     } catch (const std::exception& e) {
-      ioai::debug::log("MotionData").error("failed to finalize: {}", e.what());
+      demo::log("MotionData").error("failed to finalize: {}", e.what());
     }
 
     active_ = false;
@@ -597,7 +597,7 @@ private:
       files_open_ = true;
       return true;
     } catch (const std::exception& e) {
-      ioai::debug::log("MotionData").error("failed to open files: {}", e.what());
+      demo::log("MotionData").error("failed to open files: {}", e.what());
       return false;
     }
   }
@@ -725,7 +725,7 @@ class MotionDataReader {
     /// Load all motion sub-directories from @p base_directory.
     /// @return True if at least one motion was loaded successfully.
     bool ReadFromCSV(const std::string& base_directory) {
-      ioai::debug::log("MotionData").info("reading motion data from CSV files in: {}", base_directory);
+      demo::log("MotionData").info("reading motion data from CSV files in: {}", base_directory);
 
       // Auto-discover motion folders
       std::vector<std::string> motion_names;
@@ -738,11 +738,11 @@ class MotionDataReader {
           }
         }
       } catch (const std::exception& e) {
-        ioai::debug::log("MotionData").error("error reading directory: {}", e.what());
+        demo::log("MotionData").error("error reading directory: {}", e.what());
         return false;
       }
 
-      ioai::debug::log("MotionData").info("found {} motion folders", motion_names.size());
+      demo::log("MotionData").info("found {} motion folders", motion_names.size());
 
       for (const auto& motion_name : motion_names) {
         // Create motion as shared_ptr for proper ownership
@@ -752,7 +752,7 @@ class MotionDataReader {
 
         // Read metadata first (contains body part indexes!)
         if (!ReadMetadata(motion_dir + "/metadata.txt", *motion)) {
-          ioai::debug::log("MotionData").warn("could not read metadata for {}", motion_name);
+          demo::log("MotionData").warn("could not read metadata for {}", motion_name);
         }
 
         // Collect missing file warnings to decide later which ones to show
@@ -770,7 +770,7 @@ class MotionDataReader {
             if (num_frames == 0) {
               num_frames = pos_frames;
             } else if (num_frames != pos_frames) {
-              ioai::debug::log("MotionData").error("frame count mismatch in joint_pos.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, pos_frames);
+              demo::log("MotionData").error("frame count mismatch in joint_pos.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, pos_frames);
               continue;
             }
             num_joints_pos = motion->joint_positions_.size() / pos_frames;
@@ -786,7 +786,7 @@ class MotionDataReader {
             if (num_frames == 0) {
               num_frames = vel_frames;
             } else if (num_frames != vel_frames) {
-              ioai::debug::log("MotionData").error("frame count mismatch in joint_vel.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, vel_frames);
+              demo::log("MotionData").error("frame count mismatch in joint_vel.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, vel_frames);
               continue;
             }
             num_joints_vel = motion->joint_velocities_.size() / vel_frames;
@@ -797,7 +797,7 @@ class MotionDataReader {
 
         // Validate joint counts match if both are present
         if (num_joints_pos > 0 && num_joints_vel > 0 && num_joints_pos != num_joints_vel) {
-          ioai::debug::log("MotionData").error("number of joints inconsistent between joint_pos.csv ({}) and joint_vel.csv ({}) for {} - SKIPPING MOTION", num_joints_pos, num_joints_vel, motion_name);
+          demo::log("MotionData").error("number of joints inconsistent between joint_pos.csv ({}) and joint_vel.csv ({}) for {} - SKIPPING MOTION", num_joints_pos, num_joints_vel, motion_name);
           continue;
         }
 
@@ -813,7 +813,7 @@ class MotionDataReader {
         } else if (std::filesystem::exists(motion_dir + "/body_pos.csv")) {
           int body_frames = ReadCSV3D<3>(motion_dir + "/body_pos.csv", motion->body_positions_);
           if (num_frames != body_frames) {
-            ioai::debug::log("MotionData").error("frame count mismatch in body_pos.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, body_frames);
+            demo::log("MotionData").error("frame count mismatch in body_pos.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, body_frames);
             continue;
           }
         } else {
@@ -829,7 +829,7 @@ class MotionDataReader {
           if (num_frames == 0) {
             num_frames = quat_frames;
           } else if (num_frames != quat_frames) {
-            ioai::debug::log("MotionData").error("frame count mismatch in body_quat.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, quat_frames);
+            demo::log("MotionData").error("frame count mismatch in body_quat.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, quat_frames);
             continue;
           }
           if (num_frames > 0) {
@@ -843,11 +843,11 @@ class MotionDataReader {
         if (std::filesystem::exists(motion_dir + "/body_lin_vel.csv")) {
           int vel_frames = ReadCSV3D<3>(motion_dir + "/body_lin_vel.csv", motion->body_lin_velocities_);
           if (num_frames != vel_frames) {
-            ioai::debug::log("MotionData").error("frame count mismatch in body_lin_vel.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, vel_frames);
+            demo::log("MotionData").error("frame count mismatch in body_lin_vel.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, vel_frames);
             continue;
           }
           if (motion->body_lin_velocities_.size() != num_frames * num_bodies) {
-            ioai::debug::log("MotionData").error("body count mismatch between body_pos.csv and body_lin_vel.csv for {} - SKIPPING MOTION", motion_name);
+            demo::log("MotionData").error("body count mismatch between body_pos.csv and body_lin_vel.csv for {} - SKIPPING MOTION", motion_name);
             continue;
           }
         } else {
@@ -857,11 +857,11 @@ class MotionDataReader {
         if (std::filesystem::exists(motion_dir + "/body_ang_vel.csv")) {
           int ang_vel_frames = ReadCSV3D<3>(motion_dir + "/body_ang_vel.csv", motion->body_ang_velocities_);
           if (num_frames != ang_vel_frames) {
-            ioai::debug::log("MotionData").error("frame count mismatch in body_ang_vel.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, ang_vel_frames);
+            demo::log("MotionData").error("frame count mismatch in body_ang_vel.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, ang_vel_frames);
             continue;
           }
           if (motion->body_ang_velocities_.size() != num_frames * num_bodies) {
-            ioai::debug::log("MotionData").error("body count mismatch between body_pos.csv and body_ang_vel.csv for {} - SKIPPING MOTION", motion_name);
+            demo::log("MotionData").error("body count mismatch between body_pos.csv and body_ang_vel.csv for {} - SKIPPING MOTION", motion_name);
             continue;
           }
         } else {
@@ -875,7 +875,7 @@ class MotionDataReader {
         if (std::filesystem::exists(motion_dir + "/smpl_joint.csv")) {
           int smpl_frames = ReadCSV3D<3>(motion_dir + "/smpl_joint.csv", motion->smpl_joints_);
           if (num_frames > 0 && num_frames != smpl_frames) {
-            ioai::debug::log("MotionData").error("frame count mismatch in smpl_joint.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, smpl_frames);
+            demo::log("MotionData").error("frame count mismatch in smpl_joint.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, smpl_frames);
             continue;
           } else if (num_frames == 0) {
             num_frames = smpl_frames;
@@ -890,7 +890,7 @@ class MotionDataReader {
         if (std::filesystem::exists(motion_dir + "/smpl_pose.csv")) {
           int smpl_pose_frames = ReadCSV3D<3>(motion_dir + "/smpl_pose.csv", motion->smpl_poses_);
           if (num_frames > 0 && num_frames != smpl_pose_frames) {
-            ioai::debug::log("MotionData").error("frame count mismatch in smpl_pose.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, smpl_pose_frames);
+            demo::log("MotionData").error("frame count mismatch in smpl_pose.csv for {} (expected {}, got {}) - SKIPPING MOTION", motion_name, num_frames, smpl_pose_frames);
             continue;
           } else if (num_frames == 0) {
             num_frames = smpl_pose_frames;
@@ -904,7 +904,7 @@ class MotionDataReader {
 
         // Must have at least some data to be valid
         if (num_frames == 0) {
-          ioai::debug::log("MotionData").error("no valid data found for {} - SKIPPING MOTION", motion_name);
+          demo::log("MotionData").error("no valid data found for {} - SKIPPING MOTION", motion_name);
           continue;
         }
 
@@ -923,7 +923,7 @@ class MotionDataReader {
           bool should_warn = (is_robot_file && has_robot_data) || (is_smpl_file && has_smpl_data);
 
           if (should_warn) {
-            ioai::debug::log("MotionData").warn("missing {} for {}", missing_file, motion_name);
+            demo::log("MotionData").warn("missing {} for {}", missing_file, motion_name);
           }
         }
 
@@ -940,7 +940,7 @@ class MotionDataReader {
         motion->pos_filter_tmp.resize(num_frames);
         motion->ang_filter_tmp.resize(num_frames);
 
-        ioai::debug::log("MotionData").info("loaded {} ({} timesteps)", motion_name, motion->timesteps);
+        demo::log("MotionData").info("loaded {} ({} timesteps)", motion_name, motion->timesteps);
         motions.push_back(motion);
       }
 
@@ -948,7 +948,7 @@ class MotionDataReader {
     }
 
     void PrintSummary() const {
-      ioai::debug::log("MotionData").info("motions loaded: {}", motions.size());
+      demo::log("MotionData").info("motions loaded: {}", motions.size());
     }
 
     // Get a specific motion by name (returns shared_ptr for thread-safe shared ownership)
@@ -1040,13 +1040,13 @@ class MotionDataReader {
 
       int line_size = flat_data.size() / num_lines;
       if(line_size * num_lines != flat_data.size()) {
-        ioai::debug::log("MotionData").warn("inconsistent line sizes in {}", filename);
+        demo::log("MotionData").warn("inconsistent line sizes in {}", filename);
         return 0;
       }
 
       int elements_per_line = line_size / coords_per_body;
       if(elements_per_line * coords_per_body != line_size) {
-        ioai::debug::log("MotionData").warn("unexpected element count per line in {}", filename);
+        demo::log("MotionData").warn("unexpected element count per line in {}", filename);
         return 0;
       }
 

@@ -9,7 +9,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-namespace ioai::debug {
+namespace demo {
 
 inline spdlog::logger& log(std::string_view subsystem = "demo") {
   static std::mutex mutex;
@@ -23,4 +23,4 @@ inline spdlog::logger& log(std::string_view subsystem = "demo") {
   return *logger;
 }
 
-}  // namespace ioai::debug
+}  // namespace demo

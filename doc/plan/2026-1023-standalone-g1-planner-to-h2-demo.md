@@ -34,14 +34,12 @@ DDS, a controller, a policy, a bridge, or actuator output.
   containing only CUDA/TensorRT, MuJoCo/OpenGL/GLFW, Eigen, Pinocchio, OSQP,
   qpOASES, threads, and the extracted sources.
 - The planner ONNX is about 739 MiB and robot mesh assets total more than 100
-  MiB. They are runtime data, not source. Keep their paths configurable and
-  provide a local asset bootstrap/convenience mechanism; do not hard-code a
-  compile/link dependency on the source repository.
+  MiB. Their paths remain configurable; the final repository stores the
+  default copies as regular Git LFS files so it has no source-workspace links.
 - `robot_retargeter`, qpOASES, Pinocchio, OSQP and MuJoCo are pinned upstream
   repositories in the current workspace. Preserve their pinning in the new
   repository using submodules or an equivalent explicit dependency manifest.
-- `gear_sonic_deploy` has unrelated dirty submodules
-  `ros2_msgs/ioai_msgs` and `thirdparty/io_debug_log`; they must remain
+- `gear_sonic_deploy` has unrelated dirty submodules; they must remain
   untouched.
 
 ## Decisions
@@ -53,13 +51,11 @@ DDS, a controller, a policy, a bridge, or actuator output.
 - **D2 — Preserve the C++ algorithm.** Move the original planner/retarget and
   continuity logic rather than reimplementing it in Python. Python remains only
   for result validation.
-- **D3 — Pin reusable dependencies.** Use the existing internal Git remotes and
-  known commits for reusable third-party projects. Remove the demo's accidental
-  ROS 2/Unitree deployment linkage.
-- **D4 — Treat large models as runtime assets.** Default to paths under
-  `assets/`; accept explicit CLI/environment overrides. A setup helper may copy
-  or symlink assets from an existing workspace for local use, while documented
-  operation supports independently supplied assets.
+- **D3 — Pin reusable dependencies.** Use public GitHub upstreams for reusable
+  third-party projects and vendor the small internal-only retarget subset.
+  Remove the demo's accidental ROS 2/Unitree deployment linkage.
+- **D4 — Store large runtime assets with Git LFS.** Default to regular files
+  under `assets/` while retaining explicit CLI/environment overrides.
 - **D5 — Keep one-command showcase workflows.** Preserve interactive viewing,
   deterministic headless validation, and the default 30-second/1500-frame
   continuous random locomotion MP4 recording with action labels.

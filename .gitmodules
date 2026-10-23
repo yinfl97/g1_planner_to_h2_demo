@@ -1,18 +1,15 @@
 [submodule "thirdparty/pinocchio"]
 	path = thirdparty/pinocchio
-	url = git@git.io-ai.tech:sonic/pinocchio.git
+	url = https://github.com/stack-of-tasks/pinocchio.git
 [submodule "thirdparty/osqp"]
 	path = thirdparty/osqp
-	url = git@git.io-ai.tech:sonic/osqp.git
+	url = https://github.com/osqp/osqp.git
 [submodule "thirdparty/qpOASES"]
 	path = thirdparty/qpOASES
-	url = git@git.io-ai.tech:sonic/qpoases.git
+	url = https://github.com/coin-or/qpOASES.git
 [submodule "thirdparty/mujoco"]
 	path = thirdparty/mujoco
-	url = git@git.io-ai.tech:sonic/mujoco.git
-[submodule "thirdparty/robot_retargeter"]
-	path = thirdparty/robot_retargeter
-	url = git@git.io-ai.tech:sonic/robot_retargeter.git
+	url = https://github.com/google-deepmind/mujoco.git
 [submodule "thirdparty/glfw"]
 	path = thirdparty/glfw
 	url = https://github.com/glfw/glfw.git

@@ -1,8 +1,5 @@
 /build/
 /output/
-/assets/g1
-/assets/h2
-/assets/planner/*.onnx
 /assets/planner/*.trt
 *.plan
 __pycache__/

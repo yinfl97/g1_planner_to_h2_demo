@@ -40,7 +40,7 @@
 #include <iostream>
 #include "localmotion_kplanner.hpp"
 #include <cuda_runtime.h>
-#include "io_debug_log/debug_log.hpp"
+#include "demo_log.hpp"
 
 /**
  * @class LocalMotionPlannerTensorRT
@@ -114,7 +114,7 @@ public:
 
         bool success = InitializeEngine();
         if (!success) {
-            ioai::debug::log("Planner").error("failed to initialize TensorRT engine");
+            demo::log("Planner").error("failed to initialize TensorRT engine");
             throw std::runtime_error("Failed to initialize TensorRT engine");
         }
 
@@ -213,12 +213,12 @@ private:
      * @return True on success; false if conversion, initialisation, or validation fails.
      */
     bool InitializeEngine() {
-        ioai::debug::log("Planner").info("initialize Engine");
+        demo::log("Planner").info("initialize Engine");
 
         // Create CUDA stream for async operations
         cudaError_t status = cudaStreamCreate(&cuda_stream_);
         if (status != cudaSuccess) {
-            ioai::debug::log("Planner").error("CUDA error: {}", cudaGetErrorString(status));
+            demo::log("Planner").error("CUDA error: {}", cudaGetErrorString(status));
             return false;
         }
 
@@ -237,29 +237,29 @@ private:
 
         // Convert ONNX to TensorRT if needed
         if (!ConvertONNXToTRT(options, onnxModelPath, cachedTRTFile, prefix, false)) {
-            ioai::debug::log("Planner").error("failed to convert ONNX at {}", onnxModelPath);
+            demo::log("Planner").error("failed to convert ONNX at {}", onnxModelPath);
             return false;
         }
 
         // Initialize the TensorRT inference engine
         if (!inference_engine_->Initialize(cachedTRTFile, options.deviceID, options.dynamic_axes_names)) {
-            ioai::debug::log("Planner").error("failed to initialize TensorRT model: {}", cachedTRTFile);
+            demo::log("Planner").error("failed to initialize TensorRT model: {}", cachedTRTFile);
             return false;
         }
 
         // Initialize engine inputs
         if (!inference_engine_->InitInputs({})) {
-            ioai::debug::log("Planner").error("failed to initialize TensorRT model inputs: {}", cachedTRTFile);
+            demo::log("Planner").error("failed to initialize TensorRT model inputs: {}", cachedTRTFile);
             return false;
         }
 
-        ioai::debug::log("Planner").info("successfully converted ONNX to TRT: {}", cachedTRTFile);
+        demo::log("Planner").info("successfully converted ONNX to TRT: {}", cachedTRTFile);
 
         // Capture a CUDA graph
         cudaStreamBeginCapture(cuda_stream_, cudaStreamCaptureModeRelaxed);
         if(!inference_engine_->Enqueue(cuda_stream_))
         {
-            ioai::debug::log("Planner").error("failed to enqueue inference for capturing cuda graph");
+            demo::log("Planner").error("failed to enqueue inference for capturing cuda graph");
             return false;
         }
         cudaStreamEndCapture(cuda_stream_, &graph_);
@@ -275,9 +275,9 @@ private:
         // V1/V2/V12 (H2) use the 11-input interface; V0 uses 6.
         size_t expectedInputs = (config_.version == 0) ? 6 : 11;
         if (inputNames.size() != expectedInputs) {
-            ioai::debug::log("Planner").info("model version: {}", config_.version);
-            ioai::debug::log("Planner").info("model has {} inputs, expected {}", inputNames.size(), expectedInputs);
-            ioai::debug::log("Planner").error("failed to initialize TensorRT engine (input count mismatch)");
+            demo::log("Planner").info("model version: {}", config_.version);
+            demo::log("Planner").info("model has {} inputs, expected {}", inputNames.size(), expectedInputs);
+            demo::log("Planner").error("failed to initialize TensorRT engine (input count mismatch)");
             return false;
         }
 
@@ -299,13 +299,13 @@ private:
             }
             for (const auto &req : requiredNames) {
                 if (std::find(inputNames.begin(), inputNames.end(), req) == inputNames.end()) {
-                    ioai::debug::log("Planner").error("missing required input tensor: {}", req);
+                    demo::log("Planner").error("missing required input tensor: {}", req);
                     return false;
                 }
             }
         }
 
-        ioai::debug::log("Planner").info("tensorRT planner model loaded successfully");
+        demo::log("Planner").info("tensorRT planner model loaded successfully");
         return true;
     }
 
@@ -342,7 +342,7 @@ private:
                            int random_seed) override {
         // Update mode
         if (mode_value < 0 || mode_value >= GetValidModeValueRange()) {
-            ioai::debug::log("Planner").error("invalid mode value: {}. Please verify the planner model version and the mode value range", mode_value);
+            demo::log("Planner").error("invalid mode value: {}. Please verify the planner model version and the mode value range", mode_value);
         }
         mode_values_[0] = mode_value < GetValidModeValueRange() ? mode_value : 0;
 

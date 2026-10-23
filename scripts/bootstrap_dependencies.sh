@@ -9,15 +9,14 @@ BUILD_TYPE="${1:-Release}"
 PARALLELISM="${2:-$(nproc)}"
 
 declare -A pins=(
-  [pinocchio]=6ce7b7c5d2ae62bb943d88846df0723e8f1ef0a7
-  [osqp]=1c2cb65e0b2372faf7216f3af5fe00eba9d26428
-  [qpOASES]=7f26b3247b90dbb9c0ed6c5dd18883da35e0ec72
-  [mujoco]=245bc6b60a9098dfb899a3cce63e2ed6490390fe
-  [robot_retargeter]=af1777399672d28a7543b961164deada3fb5c0e2
+  [pinocchio]=187afafcfe22d7ac16a26241c0b13a76d04d82c1
+  [osqp]=0dd00a578cf1c2691c5c379965d504c75bf6cfad
+  [qpOASES]=9e40af7d170f440b7887fc4f9cf162f3f3ae24e8
+  [mujoco]=13827e9ee56f097f57acf69ae52b078f9839682d
   [glfw]=7b6aead9fb88b3623e3b3725ebb42670cbe4c579
 )
 
-for dependency in pinocchio osqp qpOASES mujoco robot_retargeter glfw; do
+for dependency in pinocchio osqp qpOASES mujoco glfw; do
   path="${REPO_ROOT}/thirdparty/${dependency}"
   [[ -e "${path}/.git" ]] || {
     echo "Missing ${dependency}; run: git submodule update --init --recursive" >&2
@@ -33,6 +32,7 @@ done
 mkdir -p "${BUILD_ROOT}" "${INSTALL_PREFIX}"
 cmake -S "${REPO_ROOT}/thirdparty/pinocchio" -B "${BUILD_ROOT}/pinocchio" \
   -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+  -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
   -DCMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-/opt/ros/humble}" \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=OFF \
   -DFETCHCONTENT_FULLY_DISCONNECTED=ON -DBUILD_PYTHON_INTERFACE=OFF \
@@ -51,7 +51,7 @@ cmake --build "${BUILD_ROOT}/osqp" --target install -j"${PARALLELISM}"
 
 cmake -S "${REPO_ROOT}/thirdparty/mujoco" -B "${BUILD_ROOT}/mujoco" \
   -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
-  -DFETCHCONTENT_FULLY_DISCONNECTED=ON -DMUJOCO_BUILD_TESTS=OFF \
+  -DFETCHCONTENT_FULLY_DISCONNECTED=OFF -DMUJOCO_BUILD_TESTS=OFF \
   -DMUJOCO_TEST_PYTHON_UTIL=OFF -DMUJOCO_BUILD_SIMULATE=OFF \
   -DMUJOCO_BUILD_EXAMPLES=OFF -DMUJOCO_BUILD_STUDIO=OFF \
   -DMUJOCO_USE_FILAMENT=OFF -DMUJOCO_WITH_USD=OFF

@@ -47,11 +47,11 @@ date: 2026-10-23
 
 - Added a minimal standalone CMake graph for the original TensorRT planner,
   robot retargeter, MuJoCo viewer, EGL renderer, and their pinned dependencies.
-- Pinned Pinocchio, OSQP, qpOASES, MuJoCo, robot_retargeter, and GLFW as Git
-  submodules. Dependency builds install beneath `build/deps/install`.
-- Kept large ONNX/MJCF/mesh data out of Git. `bootstrap_assets.sh` creates
-  relative workspace links that remain valid through the container mount;
-  launchers also support explicit CLI/environment asset paths.
+- Pinned Pinocchio, OSQP, qpOASES, MuJoCo, and GLFW to public GitHub
+  submodules. Vendored the internal-only C++ retarget subset and required MJCF
+  assets. Dependency builds install beneath `build/deps/install`.
+- Stored the planner and robot assets as regular Git LFS files; launchers also
+  support explicit CLI/environment asset paths.
 - Replaced the deployment logger include with a small local spdlog adapter, so
   the extracted planner has no ROS 2/ioai_msgs/Unitree dependency.
 - The host launcher translates workspace absolute paths to `/root/workspace`.
@@ -60,9 +60,9 @@ date: 2026-10-23
 - Removed the example directory, README links, Just recipes, CMake option and
   targets, and the unconsumed planner-test source from `gear_sonic_deploy`.
   Its production planner/retarget helpers remain unchanged.
-- Preserved the pre-existing dirty `ros2_msgs/ioai_msgs` and
-  `thirdparty/io_debug_log` submodules exactly as found. Generated files from
-  the removed gear example were moved to the desktop trash.
+- Preserved the pre-existing dirty source-repository submodules exactly as
+  found. Generated files from the removed gear example were moved to the
+  desktop trash.
 
 ## Verification
 

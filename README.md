@@ -5,9 +5,9 @@ retargets each generated window to H2, validates continuity and mapping error,
 and displays synchronized G1/H2 MuJoCo motion. It is kinematics only: it does
 not start ROS 2, DDS, a policy, a bridge, a controller, or actuator output.
 
-The source and link graph is self-contained in this repository. Reusable
-libraries are pinned as Git submodules; the large planner and robot meshes are
-runtime assets and are intentionally not committed.
+The source, link graph, planner model, and robot assets are self-contained in
+this repository. Reusable upstream libraries are pinned from GitHub as Git
+submodules; large binary assets are stored with Git LFS.
 
 ## Setup and build
 
@@ -15,20 +15,24 @@ Use `sonic_sim_env`, which provides CUDA, TensorRT and the system development
 packages used by the demo:
 
 ```bash
+git lfs pull
 git submodule update --init --recursive
 scripts/bootstrap_dependencies.sh Release
-scripts/bootstrap_assets.sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j"$(nproc)"
 python3 -m unittest discover -s tests -v
 ```
 
-`bootstrap_assets.sh [WORKSPACE_ROOT]` is only a local convenience helper. For
-an independently supplied asset bundle, populate the layout documented in
-[`assets/README.md`](assets/README.md), or pass `--planner`, `--g1-mjcf`,
-`--h2-mjcf`, and `--retargeter-root` explicitly. The environment equivalents
-are `G1_H2_PLANNER`, `G1_H2_G1_MJCF`, `G1_H2_H2_MJCF`, and
+The checked-in asset layout is documented in [`assets/README.md`](assets/README.md).
+Alternative assets can still be selected with `--planner`, `--g1-mjcf`,
+`--h2-mjcf`, and `--retargeter-root`; the environment equivalents are
+`G1_H2_PLANNER`, `G1_H2_G1_MJCF`, `G1_H2_H2_MJCF`, and
 `G1_H2_RETARGETER_ROOT`.
+
+Pinocchio, OSQP, qpOASES, MuJoCo, and GLFW point to their public GitHub
+repositories. The small C++ G1-to-H2 retarget implementation and the two MJCF
+descriptions it needs are vendored under `thirdparty/robot_retargeter` because
+the original internal repository has no corresponding public GitHub history.
 
 ## Run
 

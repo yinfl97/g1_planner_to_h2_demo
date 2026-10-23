@@ -6,7 +6,7 @@ The demo expects these runtime files by default:
 - `g1/scene_29dof.xml` and its referenced meshes/XML
 - `h2/scene_h2_29dof.xml` and its referenced meshes/XML
 
-They are intentionally not committed. Run `scripts/bootstrap_assets.sh` to
-link assets from the standard ioenv workspace, pass another workspace root as
-its first argument, or provide explicit `--planner`, `--g1-mjcf`, and
-`--h2-mjcf` paths to `scripts/run_demo.sh`.
+These are regular files committed through Git LFS, so a recursive clone plus
+`git lfs pull` is enough to run the demo without another workspace checkout.
+You can still provide explicit `--planner`, `--g1-mjcf`, and `--h2-mjcf`
+paths to `scripts/run_demo.sh` when testing alternative assets.

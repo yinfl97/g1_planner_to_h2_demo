@@ -98,5 +98,5 @@ target_link_libraries(g1_planner_to_h2_renderer PRIVATE
   mujoco::mujoco OpenGL::EGL ${CMAKE_DL_LIBS})
 
 set_target_properties(g1_planner_to_h2_demo g1_planner_to_h2_renderer PROPERTIES
-  BUILD_RPATH "${DEMO_DEPENDENCY_PREFIX}/lib"
-  INSTALL_RPATH "$ORIGIN")
+  BUILD_RPATH "${DEMO_DEPENDENCY_PREFIX}/lib;/opt/ros/humble/lib/x86_64-linux-gnu"
+  INSTALL_RPATH "$ORIGIN;/opt/ros/humble/lib/x86_64-linux-gnu")
